@@ -2,9 +2,10 @@
 
 use strict;
 
-# MPV settle time
 my $cmd = "/usr/bin/rrdtool update --template hw:ch ";
+# MPV settle time
 my $settle = 15;
+# The WiringPi GPIO pins we are monitoring
 my %pins = { 2, 3 };
 my %child;
 
@@ -46,7 +47,7 @@ sub pin_state {
 sub update_rrd {	
 	#pin 2 = white, pin 3 = grey
 	my $idx = $pins{2} + $pins{3} << 1;
-	return unless defined ($yplan{$idx});
+	return unless exists($yplan{$idx});
 	system($cmd . $yplan($idx);
 }
 
@@ -62,7 +63,7 @@ foreach my $pin (keys %pins) {
 while (1) {
 	my $pid = wait();
 	# a child has exited
-	defined($child{$pid}) or die "Unknown child exited: $pid";
+	exists($child{$pid}) or die "Unknown child exited: $pid";
 	pin_state($child{$pid}, $?);
 	delete($child{$pid});
 	# replace terminated handler
