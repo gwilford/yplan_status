@@ -15,15 +15,15 @@ my %yplan = { 0 => "N:0:1",
 my %child;
 
 # Child routine
-sub spawn_handler {
+sub spawn_child {
 	my $pin = @_[0];
 	my $pid = fork();
 	die unless defined $pid;
 	if ($pid == 0) {
 		# In the child
-		#system("gpio $pin wfl...");
-		sleep $settle;
-		exit(0);
+		my $ret = system("gpio wfi $pin both");
+		sleep $settle unless $ret;
+		exit($ret);
 	}
 	$child{$pid} = $pin;
 }
@@ -50,21 +50,22 @@ sub update_rrd {
 	system($cmd . $yplan($idx);
 }
 
-# Initialise pin_handlers
+# Initialise pin edge change detection
 foreach my $pin (keys %pins) {
 	# init pin_status
 	system("gpio mode $pin in");
 	system("gpio mode $pin up");
 	$pins{$pin} = chomp(`gpio read $pin`);
-	spawn_handler($pin);
+	spawn_child($pin);
 }
 
 while (1) {
 	my $pid = wait();
 	# a child has exited
 	exists($child{$pid}) or die "Unknown child exited: $pid";
-	pin_state($child{$pid}, $?);
-	delete($child{$pid});
+	$? == 0 or die "Child $pid died with returncode: $?";
+	pin_state($child{$pid});
 	# replace terminated handler
-	spawn_handler($pin);
+	spawn_child($child{$pid});
+	delete($child{$pid});
 }
