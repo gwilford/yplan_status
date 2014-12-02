@@ -14,7 +14,8 @@ sub spawn_handler {
 	die unless defined $pid;
 	if ($pid == 0) {
 		# In the child
-		#system("gpio ...");
+		#system("gpio $pin wfl...");
+		sleep $settle;
 		exit(0);
 	}
 	$child{$pid} = $pin;
@@ -22,7 +23,33 @@ sub spawn_handler {
 
 sub pin_state {
 	my ($pin, $ret) = @_;
-	sleep $settle;
+	my $change = 0;
+	
+	# read both pins
+	foreach my $pin (keys %pins) {
+		my $new = chomp(`gpio $pin read`);
+		if ($pins{$pin} != $new) {
+			$change = 1;
+			$pins{$pin} = $new;
+		}
+	}
+	update_rrd() if $change;
+}
+
+sub update_rrd {	
+	#pin 2 = white, pin 3 = grey
+	if ($pins{2}) {
+		if ($pins{3}) {
+			# 1 1
+		} else {
+			# 1 0
+		}
+	} else {
+		if ($pins{3}) {
+			# 0 1
+		} else {
+			# 0 0
+		}
 }
 
 # Initialise pin_handlers
@@ -36,8 +63,9 @@ foreach my $pin (keys %pins) {
 
 while (1) {
 	my $pid = wait();
+	# a child has exited
 	pin_state($child{$pid}, $?);
-	delete($child{$pid}) or die "Forgotten child died";
+	delete($child{$pid}) or die "Unknown child exited: $pid";
 	# replace terminated handler
 	spawn_handler($pin);
 }
