@@ -1,0 +1,39 @@
+#!/opt/local/bin/perl -w;
+
+use strict;
+
+# MPV settle time
+my $settle = 30;
+my @pins = [ 2, 3 ];
+my %child;
+
+# Child routine
+sub pin_handler {
+	my $pin = @_[0];
+	my $pid = fork();
+	die unless defined $pid;
+	if ($pid == 0) {
+		# In the child
+		#system("gpio ...");
+		exit(0);
+	}
+	$child{$pid} = $pin;
+}
+
+sub pin_state {
+	my ($pin, $ret) = @_;
+	sleep $settle;
+}
+
+# Initialise pin_handlers
+foreach my $pin (@pins) {
+	pin_handler($pin);
+}
+
+while (1) {
+	my $pid = wait();
+	pin_state($child{$pid}, $?);
+	delete($child{$pid}) or die "Forgotten child died";
+	# replace terminated handler
+	pin_handler($pin);
+}
