@@ -1,5 +1,7 @@
 #!/opt/local/bin/perl -w;
 
+# Might need some gpio pins exported as root before running this program as pi
+# Might also need gpio edge before wfi works
 use strict;
 
 my $cmd = "/usr/bin/rrdtool update --template hw:ch ";
