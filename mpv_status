@@ -3,20 +3,16 @@
 use strict;
 
 # MPV settle time
-my $settle = 30;
+my $cmd = "/usr/bin/rrdtool update --template hw:ch ";
+my $settle = 15;
 my %pins = { 2, 3 };
 my %child;
 
-# MPV signals => GPIO pin levels => Y Plan state mapping
-my %yplan = { 1 => 
-		{ 1  => "1:0",
-		  0  => "",
-		},
-	      0 =>
-		{ 1 => "1:1",
-		  0 => "0:1",
-		},
-	    }
+# MPV signals => GPIO pin levels (%pins)
+#             => Y Plan state bitmap (%yplan)
+my %yplan = { 0 => "N:0:1",
+	      2 => "N:1:1",
+	      3 => "N:1:0", }
 
 # Child routine
 sub spawn_handler {
@@ -49,23 +45,9 @@ sub pin_state {
 
 sub update_rrd {	
 	#pin 2 = white, pin 3 = grey
-	if ($pins{2}) {
-		if ($pins{3}) {
-			# 1 1
-			#rrdtool update --template hw:ch N:1:0
-		} else {
-			# 1 0
-			# no-op
-		}
-	} else {
-		if ($pins{3}) {
-			# 0 1
-			#rrdtool update --template hw:ch N:1:1
-			
-		} else {
-			# 0 0
-			#rrdtool update --template hw:ch N:0:1
-		}
+	my $idx = $pins{2} + $pins{3} << 1;
+	return unless defined ($yplan{$idx});
+	system($cmd . $yplan($idx);
 }
 
 # Initialise pin_handlers
@@ -80,8 +62,9 @@ foreach my $pin (keys %pins) {
 while (1) {
 	my $pid = wait();
 	# a child has exited
+	defined($child{$pid}) or die "Unknown child exited: $pid";
 	pin_state($child{$pid}, $?);
-	delete($child{$pid}) or die "Unknown child exited: $pid";
+	delete($child{$pid});
 	# replace terminated handler
 	spawn_handler($pin);
 }
