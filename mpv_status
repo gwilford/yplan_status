@@ -7,6 +7,17 @@ my $settle = 30;
 my %pins = { 2, 3 };
 my %child;
 
+# MPV signals => GPIO pin levels => Y Plan state mapping
+my %yplan = { 1 => 
+		{ 1  => "1:0",
+		  0  => "",
+		},
+	      0 =>
+		{ 1 => "1:1",
+		  0 => "0:1",
+		},
+	    }
+
 # Child routine
 sub spawn_handler {
 	my $pin = @_[0];
@@ -41,14 +52,19 @@ sub update_rrd {
 	if ($pins{2}) {
 		if ($pins{3}) {
 			# 1 1
+			#rrdtool update --template hw:ch N:1:0
 		} else {
 			# 1 0
+			# no-op
 		}
 	} else {
 		if ($pins{3}) {
 			# 0 1
+			#rrdtool update --template hw:ch N:1:1
+			
 		} else {
 			# 0 0
+			#rrdtool update --template hw:ch N:0:1
 		}
 }
 
