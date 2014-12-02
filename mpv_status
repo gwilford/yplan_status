@@ -4,7 +4,8 @@ use strict;
 
 # MPV settle time
 my $settle = 30;
-my @pins = [ 2, 3 ];
+my %pins = { 2, 3 };
+
 my %child;
 
 # Child routine
@@ -26,7 +27,11 @@ sub pin_state {
 }
 
 # Initialise pin_handlers
-foreach my $pin (@pins) {
+foreach my $pin (keys %pins) {
+	# init pin_status
+	#gpio $pin input
+	#gpio $pin pull_up
+	#$pins{$pin} = chomp(`gpio $pin read`);
 	pin_handler($pin);
 }
 
