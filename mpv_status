@@ -54,8 +54,8 @@ sub update_rrd {
 # Initialise pin_handlers
 foreach my $pin (keys %pins) {
 	# init pin_status
-	#gpio $pin input
-	#gpio $pin pull_up
+	system("gpio mode $pin in");
+	system("gpio mode $pin up");
 	#$pins{$pin} = chomp(`gpio $pin read`);
 	spawn_handler($pin);
 }
