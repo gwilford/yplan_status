@@ -3,17 +3,16 @@
 use strict;
 
 my $cmd = "/usr/bin/rrdtool update --template hw:ch ";
-# MPV settle time
-my $settle = 15;
+# MPV / relay settle time and de-bounce
+my $settle = 5;
 # The WiringPi GPIO pins we are monitoring
-my %pins = { 2, 3 };
-my %child;
-
+my %pins = { 2, 3 }; #pin 2 = white wire, pin 3 = grey wire
 # MPV signals => GPIO pin levels (%pins)
 #             => Y Plan state bitmap (%yplan)
 my %yplan = { 0 => "N:0:1",
 	      2 => "N:1:1",
 	      3 => "N:1:0", }
+my %child;
 
 # Child routine
 sub spawn_handler {
@@ -33,19 +32,19 @@ sub pin_state {
 	my ($pin, $ret) = @_;
 	my $change = 0;
 	
+	# an edge event has occurred on at least one pin
 	# read both pins
 	foreach my $pin (keys %pins) {
-		my $new = chomp(`gpio $pin read`);
-		if ($pins{$pin} != $new) {
+		my $level = chomp(`gpio read $pin`);
+		if ($pins{$pin} != $level) {
 			$change = 1;
-			$pins{$pin} = $new;
+			$pins{$pin} = $level;
 		}
 	}
 	update_rrd() if $change;
 }
 
 sub update_rrd {	
-	#pin 2 = white, pin 3 = grey
 	my $idx = $pins{2} + $pins{3} << 1;
 	return unless exists($yplan{$idx});
 	system($cmd . $yplan($idx);
@@ -56,7 +55,7 @@ foreach my $pin (keys %pins) {
 	# init pin_status
 	system("gpio mode $pin in");
 	system("gpio mode $pin up");
-	#$pins{$pin} = chomp(`gpio $pin read`);
+	$pins{$pin} = chomp(`gpio read $pin`);
 	spawn_handler($pin);
 }
 
