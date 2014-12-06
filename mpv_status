@@ -1,12 +1,9 @@
 #!/opt/local/bin/perl -w
 
-# Might need some gpio pins exported as root before running this program as pi
-# Might also need gpio edge before wfi works
 use strict;
 use lib "/home/pi/perl5/lib/perl5";
 use RRD::Simple;
 
-#my $cmd = "/usr/bin/rrdtool update --template hw:ch ";
 # MPV / relay settle time and de-bounce
 my $settle = 5;
 # The WiringPi GPIO pins we are monitoring
