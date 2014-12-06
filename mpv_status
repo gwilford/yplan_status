@@ -10,12 +10,14 @@ use RRD::Simple;
 # MPV / relay settle time and de-bounce
 my $settle = 5;
 # The WiringPi GPIO pins we are monitoring
-my %pins = { 0, 2 }; #pin 0 = white wire, pin 2 = grey wire
+#pin 0 = white wire, pin 2 = grey wire
+my %pins = ( 0 => '',
+	     2 => '');
 # MPV signals => GPIO pin levels (%pins)
 #             => Y Plan state bitmap (%yplan)
-#my %yplan = { 0 => "N:0:1",
+#my %yplan = (0 => "N:0:1",
 #	      2 => "N:1:1",
-#	      3 => "N:1:0", };
+#	      3 => "N:1:0", );
 my %child;
 my $rrd = RRD::Simple->new( file => "/home/pi/yplan_status/mpv.rrd" );
 
@@ -45,9 +47,14 @@ sub pin_state {
 		if ($pins{$pin} != $level) {
 			$change = 1;
 			$pins{$pin} = $level;
+			msg("pin $pin status = ". $pins{$pin});
 		}
 	}
 	update_rrd() if $change;
+}
+
+sub msg {
+	print localtime() . ": ". $_[0] . "\n";
 }
 
 sub update_rrd {	
@@ -58,14 +65,17 @@ sub update_rrd {
 }
 
 # Initialise pin edge change detection
+msg("initialising GPIO pins");
 foreach my $pin (keys %pins) {
 	# init pin_status
 	system("gpio mode $pin in");
 	system("gpio mode $pin up");
 	$pins{$pin} = `gpio read $pin`;
 	chomp($pins{$pin});
+	msg("pin $pin status = ". $pins{$pin});
 	spawn_child($pin);
 }
+update_rrd();
 
 while (1) {
 	my $pid = wait();
