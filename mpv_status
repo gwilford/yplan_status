@@ -3,18 +3,21 @@
 # Might need some gpio pins exported as root before running this program as pi
 # Might also need gpio edge before wfi works
 use strict;
+use lib "/home/pi/perl5/lib/perl5";
+use RRD::Simple;
 
-my $cmd = "/usr/bin/rrdtool update --template hw:ch ";
+#my $cmd = "/usr/bin/rrdtool update --template hw:ch ";
 # MPV / relay settle time and de-bounce
 my $settle = 5;
 # The WiringPi GPIO pins we are monitoring
-my %pins = { 2, 3 }; #pin 2 = white wire, pin 3 = grey wire
+my %pins = { 0, 2 }; #pin 0 = white wire, pin 2 = grey wire
 # MPV signals => GPIO pin levels (%pins)
 #             => Y Plan state bitmap (%yplan)
-my %yplan = { 0 => "N:0:1",
-	      2 => "N:1:1",
-	      3 => "N:1:0", };
+#my %yplan = { 0 => "N:0:1",
+#	      2 => "N:1:1",
+#	      3 => "N:1:0", };
 my %child;
+my $rrd = RRD::Simple->new( file => "/home/pi/yplan_status/mpv.rrd" );
 
 # Child routine
 sub spawn_child {
@@ -48,9 +51,10 @@ sub pin_state {
 }
 
 sub update_rrd {	
-	my $idx = $pins{2} + $pins{3} << 1;
-	return unless exists($yplan{$idx});
-	system($cmd . $yplan{$idx});
+#	my $idx = $pins{2} + $pins{3} << 1;
+#	return unless exists($yplan{$idx});
+#	system($cmd . $yplan{$idx});
+	$rrd->update(white => $pins{0}, grey => $pins{2});
 }
 
 # Initialise pin edge change detection
