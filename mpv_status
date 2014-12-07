@@ -30,6 +30,7 @@ sub spawn_child {
 		exit($ret);
 	}
 	$child{$pid} = $pin;
+	msg("PID $pid handling wire $pin started");
 }
 
 sub pin_state {
@@ -44,7 +45,7 @@ sub pin_state {
 		if ($pins{$pin} != $level) {
 			$change = 1;
 			$pins{$pin} = $level;
-			msg("pin $pin status = ". $pins{$pin});
+			msg("wire status change: $pin = ". $pins{$pin} == 0);
 		}
 	}
 	update_rrd() if $change;
@@ -58,18 +59,19 @@ sub update_rrd {
 #	my $idx = $pins{2} + $pins{3} << 1;
 #	return unless exists($yplan{$idx});
 #	system($cmd . $yplan{$idx});
-	$rrd->update(white => $pins{0}, grey => $pins{2});
+	$rrd->update(white => $pins{0} == 0, grey => $pins{2} == 0);
+	msg("wire status = ". $pins{0} == 0 . ":" . $pins{2} == 0);
 }
 
 # Initialise pin edge change detection
-msg("initialising GPIO pins");
+msg("Initialising GPIO pins");
 foreach my $pin (keys %pins) {
 	# init pin_status
 	system("gpio mode $pin in");
 	system("gpio mode $pin up");
 	$pins{$pin} = `gpio read $pin`;
 	chomp($pins{$pin});
-	msg("pin $pin status = ". $pins{$pin});
+	msg("wire $pin status = ". $pins{$pin} == 0);
 	spawn_child($pin);
 }
 update_rrd();
@@ -79,6 +81,7 @@ while (1) {
 	# a child has exited
 	exists($child{$pid}) or die "Unknown child exited: $pid";
 	$? == 0 or die "Child $pid died with returncode: $?";
+	msg("PID $pid handling wire ". $child{$pin} . " exited");
 	pin_state($child{$pid});
 	# replace terminated handler
 	spawn_child($child{$pid});
