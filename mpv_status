@@ -81,7 +81,7 @@ while (1) {
 	# a child has exited
 	exists($child{$pid}) or die "Unknown child exited: $pid";
 	$? == 0 or die "Child $pid died with returncode: $?";
-	msg("PID $pid handling wire ". $child{$pin} . " exited");
+	msg("PID $pid handling wire ". $child{$pid} . " exited");
 	pin_state($child{$pid});
 	# replace terminated handler
 	spawn_child($child{$pid});
