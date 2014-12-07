@@ -93,7 +93,7 @@ foreach my $pin (keys %pins) {
 }
 update_rrd();
 
-$SIG{TERM} = &reap();
+$SIG{TERM} = \&reap;
 
 while (1) {
 	my $pid = wait();
