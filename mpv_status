@@ -74,9 +74,10 @@ sub update_rrd {
 
 sub reap {
 	msg("reaping...");
-	foreach my $child (keys %child) {
-		kill 'TERM', $child;
-	}
+#	foreach my $child (keys %child) {
+#		kill 'TERM', $child;
+#	}
+	kill 'TERM', (keys %child);
 	exit 0;
 }
 
