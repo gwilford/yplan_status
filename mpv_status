@@ -17,7 +17,6 @@ my %pins = ( 0 => '',
 #	      3 => "N:1:0", );
 my %child;
 my $rrd = RRD::Simple->new( file => "/home/pi/yplan_status/mpv.rrd" );
-local $/ = 1;
 
 # Child routine
 sub spawn_child {
@@ -47,7 +46,7 @@ sub pin_state {
 		if ($pins{$pin} != $level) {
 			$change = 1;
 			$pins{$pin} = $level;
-			msg("wire status change: $pin = ". wire($pin));
+			msg("wire $pin status change = ". wire($pin));
 		}
 	}
 	update_rrd() if $change;
@@ -55,6 +54,7 @@ sub pin_state {
 
 # log something
 sub msg {
+	local $/ = 1;
 	print STDOUT localtime() . ": ". $_[0] . "\n";
 }
 
