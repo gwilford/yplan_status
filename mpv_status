@@ -72,6 +72,13 @@ sub update_rrd {
 	msg("wire status = ". wire(0) . ":" . wire(2));
 }
 
+sub reap {
+	foreach my $child (keys %child) {
+		kill 'TERM' $child;
+	}
+	exit 0;
+}
+
 # Initialise pin edge change detection
 msg("Initialising GPIO pins");
 foreach my $pin (keys %pins) {
@@ -85,14 +92,19 @@ foreach my $pin (keys %pins) {
 }
 update_rrd();
 
+$SIG{TERM} = &reap();
+
 while (1) {
 	my $pid = wait();
 	# a child has exited
 	exists($child{$pid}) or die "Unknown child exited: $pid";
-	$? == 0 or die "Child $pid died with returncode: $?";
-	msg("PID -$pid handling wire ". $child{$pid});
-	pin_state($child{$pid});
-	# replace terminated handler
-	spawn_child($child{$pid});
-	delete($child{$pid});
+	if ($? == 0) {
+		msg("PID -$pid handling wire ". $child{$pid});
+		pin_state($child{$pid});
+		# replace terminated handler
+		spawn_child($child{$pid});
+		delete($child{$pid});
+	} else {
+ 		msg("Child $pid died with returncode: $?");
+	}
 }
