@@ -30,7 +30,7 @@ sub spawn_child {
 		exit($ret);
 	}
 	$child{$pid} = $pin;
-	msg("PID $pid handling wire $pin started");
+	msg("PID +$pid handling wire $pin");
 }
 
 # assess pin state
@@ -46,7 +46,7 @@ sub pin_state {
 		if ($pins{$pin} != $level) {
 			$change = 1;
 			$pins{$pin} = $level;
-			msg("wire $pin status change = ". wire($pin));
+			msg("wire $pin status change -> ". wire($pin));
 		}
 	}
 	update_rrd() if $change;
@@ -90,7 +90,7 @@ while (1) {
 	# a child has exited
 	exists($child{$pid}) or die "Unknown child exited: $pid";
 	$? == 0 or die "Child $pid died with returncode: $?";
-	msg("PID $pid handling wire ". $child{$pid} . " exited");
+	msg("PID -$pid handling wire ". $child{$pid});
 	pin_state($child{$pid});
 	# replace terminated handler
 	spawn_child($child{$pid});
