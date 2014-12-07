@@ -54,7 +54,7 @@ sub pin_state {
 
 # log something
 sub msg {
-	local $/ = 1;
+	local $| = 1;
 	print STDOUT localtime() . ": ". $_[0] . "\n";
 }
 
