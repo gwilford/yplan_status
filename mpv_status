@@ -74,7 +74,7 @@ sub update_rrd {
 
 sub reap {
 	foreach my $child (keys %child) {
-		kill 'TERM' $child;
+		kill 'TERM', $child;
 	}
 	exit 0;
 }
