@@ -47,7 +47,7 @@ sub pin_state {
 		if ($pins{$pin} != $level) {
 			$change = 1;
 			$pins{$pin} = $level;
-			msg("wire status change: $pin = ". ($pins{$pin} ? 0 : 1));
+			msg("wire status change: $pin = ". wire($pin));
 		}
 	}
 	update_rrd() if $change;
@@ -58,12 +58,18 @@ sub msg {
 	print STDOUT localtime() . ": ". $_[0] . "\n";
 }
 
+# invert the pin status to represent wire status
+sub wire {
+	my $wire_state = $pins{$_[0]} == 0 ? 1 : 0;
+	return($wire_state);
+}
+
 sub update_rrd {	
 #	my $idx = $pins{2} + $pins{3} << 1;
 #	return unless exists($yplan{$idx});
 #	system($cmd . $yplan{$idx});
-	$rrd->update(white => ($pins{0} ? 0 : 1), grey => ($pins{2} ? 0 : 1));
-	msg("wire status = ". ($pins{0} ? 0 : 1) . ":" . ($pins{2} ? 0 : 1));
+	$rrd->update(white => wire(0), grey => wire(2));
+	msg("wire status = ". wire(0) . ":" . wire(2));
 }
 
 # Initialise pin edge change detection
@@ -74,7 +80,7 @@ foreach my $pin (keys %pins) {
 	system("gpio mode $pin up");
 	$pins{$pin} = `gpio read $pin`;
 	chomp($pins{$pin});
-	msg("wire $pin status = ". ($pins{$pin} ? 0 : 1));
+	msg("wire $pin status = ". wire($pin));
 	spawn_child($pin);
 }
 update_rrd();
