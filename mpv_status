@@ -34,6 +34,7 @@ sub spawn_child {
 	msg("PID $pid handling wire $pin started");
 }
 
+# assess pin state
 sub pin_state {
 	my ($pin, $ret) = @_;
 	my $change = 0;
@@ -52,6 +53,7 @@ sub pin_state {
 	update_rrd() if $change;
 }
 
+# log something
 sub msg {
 	print STDOUT localtime() . ": ". $_[0] . "\n";
 }
