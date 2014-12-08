@@ -6,6 +6,8 @@ use RRD::Simple;
 
 # MPV / relay settle time and de-bounce
 my $settle = 5;
+my $heartbeat = 3600;
+
 # The WiringPi GPIO pins we are monitoring
 #pin 0 = white wire, pin 2 = grey wire
 my %pins = ( 0 => '',
@@ -69,13 +71,13 @@ sub update_rrd {
 #	system($cmd . $yplan{$idx});
 	$rrd->update(white => wire(0), grey => wire(2));
 	msg("wire status = ". wire(0) . ":" . wire(2));
+	# restart the timer
+	alarm($heartbeat);
 }
 
 sub reap {
+	alarm(0);
 	msg("reaping...");
-#	foreach my $child (keys %child) {
-#		kill 'TERM', $child;
-#	}
 	kill 'TERM', (keys %child);
 	exit 0;
 }
@@ -91,8 +93,10 @@ foreach my $pin (keys %pins) {
 	msg("wire $pin status = ". wire($pin));
 	spawn_child($pin);
 }
-update_rrd();
 
+# Update status at least every $heartbeat seconds
+$SIG{ALRM} = sub { pin_state_change(); update_rrd(); };
+update_rrd();
 $SIG{TERM} = \&reap;
 
 while (1) {
