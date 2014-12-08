@@ -6,8 +6,7 @@ use RRD::Simple;
 
 # MPV / relay settle time and de-bounce
 my $settle = 5;
-#my $heartbeat = 3600;
-my $heartbeat = 300;
+my $heartbeat = 60;
 
 # The WiringPi GPIO pins we are monitoring
 #pin 0 = white wire, pin 2 = grey wire
