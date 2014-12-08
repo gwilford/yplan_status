@@ -36,7 +36,7 @@ sub spawn_child {
 }
 
 # assess pin state
-sub pin_state_change {
+sub update_pin_state {
 	my $change = 0;
 	
 	# an edge event has occurred on at least one pin
@@ -95,7 +95,7 @@ foreach my $pin (keys %pins) {
 }
 
 # Update status at least every $heartbeat seconds
-$SIG{ALRM} = sub { pin_state_change(); update_rrd(); };
+$SIG{ALRM} = sub { update_pin_state(); update_rrd(); };
 update_rrd();
 $SIG{TERM} = \&reap;
 
@@ -105,7 +105,7 @@ while (1) {
 	exists($child{$pid}) or die "Unknown child exited: $pid";
 	if ($? == 0) {
 		msg("   PID -$pid handling wire ". $child{$pid});
-		update_rrd() if (pin_state_change());
+		update_rrd() unless (update_pin_state() == 0);
 		# replace terminated handler
 		spawn_child($child{$pid});
 		delete($child{$pid});
