@@ -6,7 +6,8 @@ use RRD::Simple;
 
 # MPV / relay settle time and de-bounce
 my $settle = 5;
-my $heartbeat = 3600;
+#my $heartbeat = 3600;
+my $heartbeat = 300;
 
 # The WiringPi GPIO pins we are monitoring
 #pin 0 = white wire, pin 2 = grey wire
@@ -66,11 +67,13 @@ sub wire {
 }
 
 sub update_rrd {	
+	my $verbose = $_[0];
 #	my $idx = $pins{2} + $pins{3} << 1;
 #	return unless exists($yplan{$idx});
 #	system($cmd . $yplan{$idx});
-	$rrd->update(white => wire(0), grey => wire(2));
-	msg("wire status = ". wire(0) . ":" . wire(2));
+	my ($white, $grey) = (wire(0), wire(2));
+	$rrd->update(white => $white, grey => $grey);
+	msg("wire status = ". $white . ":" . $grey) if ($verbose);
 	# restart the timer
 	alarm($heartbeat);
 }
@@ -95,8 +98,8 @@ foreach my $pin (keys %pins) {
 }
 
 # Update status at least every $heartbeat seconds
-$SIG{ALRM} = sub { update_pin_state(); update_rrd(); };
-update_rrd();
+$SIG{ALRM} = sub { update_pin_state(); update_rrd(0); };
+update_rrd(1);
 $SIG{TERM} = \&reap;
 
 while (1) {
@@ -105,7 +108,7 @@ while (1) {
 	exists($child{$pid}) or die "Unknown child exited: $pid";
 	if ($? == 0) {
 		msg("   PID -$pid handling wire ". $child{$pid});
-		update_rrd() unless (update_pin_state() == 0);
+		update_rrd(1) unless (update_pin_state() == 0);
 		# replace terminated handler
 		spawn_child($child{$pid});
 		delete($child{$pid});
