@@ -97,7 +97,7 @@ foreach my $pin (keys %pins) {
 }
 
 # Update status at least every $heartbeat seconds
-$SIG{ALRM} = sub { update_pin_state(); update_rrd(0); };
+$SIG{ALRM} = \&update_rrd(0);
 update_rrd(1);
 $SIG{TERM} = \&reap;
 
