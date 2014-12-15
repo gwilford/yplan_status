@@ -24,7 +24,7 @@ my $rrd = RRD::Simple->new( file => "/home/pi/yplan_status/mpv.rrd" );
 sub spawn_child {
 	my $pin = $_[0];
 	my $pid = fork();
-	die unless defined $pid;
+	die "fork() failed: $!" unless defined $pid;
 	if ($pid == 0) {
 		# In the child
 		my $ret = system("gpio wfi $pin both");
@@ -97,7 +97,7 @@ foreach my $pin (keys %pins) {
 }
 
 # Update status at least every $heartbeat seconds
-$SIG{ALRM} = \&update_rrd(0);
+$SIG{ALRM} = sub { update_rrd(0) };
 update_rrd(1);
 $SIG{TERM} = \&reap;
 
