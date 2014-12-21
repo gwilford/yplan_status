@@ -69,7 +69,7 @@ sub update_rrd {
 	my $verbose = $_[0];
 	my ($white, $grey) = (wire(0), wire(2));
 	# protect against sub-1s updates
-	sleep(1) unless ($rrd->last < time());
+	sleep(1) unless (time() > $rrd->last);
 	$rrd->update(white => $white, grey => $grey);
 	msg("wire status = ". $white . ":" . $grey) if ($verbose);
 	# restart the timer
