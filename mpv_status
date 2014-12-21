@@ -67,10 +67,9 @@ sub wire {
 
 sub update_rrd {	
 	my $verbose = $_[0];
-#	my $idx = $pins{2} + $pins{3} << 1;
-#	return unless exists($yplan{$idx});
-#	system($cmd . $yplan{$idx});
 	my ($white, $grey) = (wire(0), wire(2));
+	# protect against sub-1s updates
+	sleep(1) unless ($rrd->last < time());
 	$rrd->update(white => $white, grey => $grey);
 	msg("wire status = ". $white . ":" . $grey) if ($verbose);
 	# restart the timer
@@ -97,7 +96,7 @@ foreach my $pin (keys %pins) {
 }
 
 # Update status at least every $heartbeat seconds
-$SIG{ALRM} = sub { sleep(1); update_rrd(0) };
+$SIG{ALRM} = sub { update_rrd(0) };
 update_rrd(1);
 $SIG{TERM} = \&reap;
 
